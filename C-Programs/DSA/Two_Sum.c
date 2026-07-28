@@ -1,3 +1,12 @@
+/*
+
+Problem: Two Sum
+> Given an Array 'nums' and integer 'target'
+> Return Indices of two distinct elements that sum upto target.
+> Assumes exactly one valid solution exists.
+
+*/
+
 #include <stdlib.h>
 #include <stdio.h>
 

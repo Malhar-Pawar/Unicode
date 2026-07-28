@@ -1,3 +1,12 @@
+/*
+
+Problem: Add Two Numbers
+> Given two reversed linked lists representing non-negative integers.
+> Add the digits node-by-node (handling carry-overs) to form the sum.
+> Return the resulting sum as a new reversed linked list.
+
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 

@@ -1,3 +1,12 @@
+/*
+
+Algorithm: Bubble Sort
+> Compares and swaps adjacent elements to move the largest value to the end.
+> Decrements 'n' each pass to skip already-sorted elements at the end.
+> Uses 'Swap' flag to exit early if no swaps are made in a complete pass.
+
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 
