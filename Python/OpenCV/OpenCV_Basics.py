@@ -63,4 +63,12 @@ def Text():
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
-# Call the Functions Here ==>
+if __name__ == "__main__":
+    Show_Image()
+    GRS()
+    HSV()
+    Resize()
+    Crop()
+    Rotate()
+    Img_Properties()
+    Text()
