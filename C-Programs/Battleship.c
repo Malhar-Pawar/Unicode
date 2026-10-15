@@ -1,1265 +1,518 @@
-#include <stdlib.h>
+#include <ctype.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <time.h>
-#define N 10
 
-void GI(char *ptr)
+#define BOARD_SIZE 10
+#define SHIP_COUNT 5
+#define MAX_NAME_LENGTH 48
+#define MAX_INPUT_LENGTH 128
+#define MAX_TARGETS (BOARD_SIZE * BOARD_SIZE * 4)
+
+typedef struct
 {
-	printf("\t\t\t\t\t-----Battleship-----\n\n");
-	printf("Enter Your Name:\t");
-	scanf(" %19s", ptr);
-	printf("\nHey %s\n\tWelcome to a Classic Game of Battleship.\n\tYou will be Competing Against Mr.Kraken.\n\tBoth Players would place their ships on a 10x10 Grid.\n\tFirst Player to sink all the opponent's ship Wins the Game.\n", ptr);
-	printf("\nLet us Look at the Ships to be Placed and their Sizes:\n1.\tAirCraft Carrier\t: 5 Squares\n2.\tBattleship\t: 4 Squares\n3.\tCruiser\t\t: 3 Squares\n4.\tSubmarine\t: 3 Squares\n5.\tPatrol Boat\t: 2 Squares\n\n");
+    const char *name;
+    int size;
+} Ship;
+
+static const Ship fleet[SHIP_COUNT] = {
+    {"Aircraft Carrier", 5},
+    {"Battleship", 4},
+    {"Cruiser", 3},
+    {"Submarine", 3},
+    {"Patrol Boat", 2}};
+
+static int readLine(char *buffer, size_t size)
+{
+    size_t length;
+
+    if (fgets(buffer, (int)size, stdin) == NULL)
+    {
+        return 0;
+    }
+
+    length = strlen(buffer);
+    if (length > 0 && buffer[length - 1] == '\n')
+    {
+        buffer[length - 1] = '\0';
+    }
+    else
+    {
+        int character;
+        while ((character = getchar()) != '\n' && character != EOF)
+        {
+        }
+    }
+
+    return 1;
 }
 
-void DispPLRboard(char arr[][N], char *ptr)
+static int readPlacement(int *row, int *column, char *orientation)
 {
-	printf("%c\t\t0\t1\t2\t3\t4\t5\t6\t7\t8\t9\n\n", ptr[0]);
-	for(int i=0; i<10; i++)
-	{
-		printf("%d\t\t",i);
-		for(int j=0; j<10; j++)
-		{
-			printf("%c\t", arr[i][j]);
-		}
-		printf("\n");
-	}
-}
-void DispBOTboard(char arr[][N])
-{
-	printf("KN\t\t0\t1\t2\t3\t4\t5\t6\t7\t8\t9\n\n");
-	for(int i=0; i<10; i++)
-	{
-		printf("%d\t\t",i);
-		for(int j=0; j<10; j++)
-		{
-			printf("%c\t", arr[i][j]);
-		}
-		printf("\n");
-	}
-}
+    char input[MAX_INPUT_LENGTH];
+    char extra;
 
-void Kraken(int arr[][N])
-{
-	//initializations
-	int a,b,df;
+    if (!readLine(input, sizeof(input)))
+    {
+        return 0;
+    }
+    if (sscanf(input, " %d %d %c %c", row, column, orientation, &extra) != 3)
+    {
+        return -1;
+    }
 
-	//Aircraft Carrier
-	while(1)
-	{
-		a=(rand()%10);
-		b=(rand()%10);
-		df=(rand()%2)+1;
+    *orientation = (char)toupper((unsigned char)*orientation);
+    if (*row < 1 || *row > BOARD_SIZE ||
+        *column < 1 || *column > BOARD_SIZE ||
+        (*orientation != 'H' && *orientation != 'V'))
+    {
+        return -1;
+    }
 
-		if(df==1)
-		{
-			if(a<=5)
-			{
-				for(int z=0; z<5; z++)
-				{
-					arr[a+z][b]=1;
-				}
-				break;
-			}
-			if(a>=4)
-			{
-				for(int z=0; z<5; z++)
-				{
-					arr[a-z][b]=1;
-				}
-				break;
-			}
-		}
-		if(df==2)
-		{
-			if(b<=5)
-			{
-				for(int z=0; z<5; z++)
-				{
-					arr[a][b+z]=1;
-				}
-				break;
-			}
-			if(b>=4)
-			{
-				for(int z=0; z<5; z++)
-				{
-					arr[a][b-z]=1;
-				}
-				break;
-			}
-		}
-	}
-
-	//Battleship
-	while(1)
-	{
-		a=(rand()%10);
-		b=(rand()%10);
-		df=(rand()%2)+1;
-		int inspect;
-
-		if(df==1)
-		{
-			if(a<=6)
-			{
-				inspect=0;
-				for(int z=0; z<4; z++)
-				{
-					if(arr[a+z][b]==0) inspect++;
-				}
-				if(inspect==4)
-				{
-					for(int z=0; z<4; z++)
-					{
-						arr[a+z][b]=1;
-					}
-					break;
-				}
-			}
-			if(a>=3)
-			{
-				inspect=0;
-				for(int z=0; z<4; z++)
-				{
-					if(arr[a-z][b]==0) inspect++;
-				}
-				if(inspect==4)
-				{
-					for(int z=0; z<4; z++)
-					{
-						arr[a-z][b]=1;
-					}
-					break;
-				}
-			}
-		}
-		if(df==2)
-		{
-			if(b<=6)
-			{
-				inspect=0;
-				for(int z=0; z<4; z++)
-				{
-					if(arr[a][b+z]==0) inspect++;
-				}
-				if(inspect==4)
-				{
-					for(int z=0; z<4; z++)
-					{
-						arr[a][b+z]=1;
-					}
-					break;
-				}
-			}
-			if(b>=3)
-			{
-				inspect=0;
-				for(int z=0; z<4; z++)
-				{
-					if(arr[a][b-z]==0) inspect++;
-				}
-				if(inspect==4)
-				{
-					for(int z=0; z<4; z++)
-					{
-						arr[a][b-z]=1;
-					}
-					break;
-				}
-			}
-		}
-	}
-
-	//Cruiser
-	while(1)
-	{
-		a=(rand()%10);
-		b=(rand()%10);
-		df=(rand()%2)+1;
-		int inspect;
-
-		if(df==1)
-		{
-			if(a<=7)
-			{
-				inspect=0;
-				for(int z=0; z<3; z++)
-				{
-					if(arr[a+z][b]==0) inspect++;
-				}
-				if(inspect==3)
-				{
-					for(int z=0; z<3; z++)
-					{
-						arr[a+z][b]=1;
-					}
-					break;
-				}
-			}
-			if(a>=2)
-			{
-				inspect=0;
-				for(int z=0; z<3; z++)
-				{
-					if(arr[a-z][b]==0) inspect++;
-				}
-				if(inspect==3)
-				{
-					for(int z=0; z<3; z++)
-					{
-						arr[a-z][b]=1;
-					}
-					break;
-				}
-			}
-		}
-		if(df==2)
-		{
-			if(b<=7)
-			{
-				inspect=0;
-				for(int z=0; z<3; z++)
-				{
-					if(arr[a][b+z]==0) inspect++;
-				}
-				if(inspect==3)
-				{
-					for(int z=0; z<3; z++)
-					{
-						arr[a][b+z]=1;
-					}
-					break;
-				}
-			}
-			if(b>=2)
-			{
-				inspect=0;
-				for(int z=0; z<3; z++)
-				{
-					if(arr[a][b-z]==0) inspect++;
-				}
-				if(inspect==3)
-				{
-					for(int z=0; z<3; z++)
-					{
-						arr[a][b-z]=1;
-					}
-					break;
-				}
-			}
-		}
-	}
-
-	//Submarine
-	while(1)
-	{
-		a=(rand()%10);
-		b=(rand()%10);
-		df=(rand()%2)+1;
-		int inspect;
-
-		if(df==1)
-		{
-			if(a<=7)
-			{
-				inspect=0;
-				for(int z=0; z<3; z++)
-				{
-					if(arr[a+z][b]==0) inspect++;
-				}
-				if(inspect==3)
-				{
-					for(int z=0; z<3; z++)
-					{
-						arr[a+z][b]=1;
-					}
-					break;
-				}
-			}
-			if(a>=2)
-			{
-				inspect=0;
-				for(int z=0; z<3; z++)
-				{
-					if(arr[a-z][b]==0) inspect++;
-				}
-				if(inspect==3)
-				{
-					for(int z=0; z<3; z++)
-					{
-						arr[a-z][b]=1;
-					}
-					break;
-				}
-			}
-		}
-		if(df==2)
-		{
-			if(b<=7)
-			{
-				inspect=0;
-				for(int z=0; z<3; z++)
-				{
-					if(arr[a][b+z]==0) inspect++;
-				}
-				if(inspect==3)
-				{
-					for(int z=0; z<3; z++)
-					{
-						arr[a][b+z]=1;
-					}
-					break;
-				}
-			}
-			if(b>=2)
-			{
-				inspect=0;
-				for(int z=0; z<3; z++)
-				{
-					if(arr[a][b-z]==0) inspect++;
-				}
-				if(inspect==3)
-				{
-					for(int z=0; z<3; z++)
-					{
-						arr[a][b-z]=1;
-					}
-					break;
-				}
-			}
-		}
-	}
-
-	//Patrol Boat
-	while(1)
-	{
-		a=(rand()%10);
-		b=(rand()%10);
-		df=(rand()%2)+1;
-		int inspect;
-
-		if(df==1)
-		{
-			if(a<=8)
-			{
-				inspect=0;
-				for(int z=0; z<2; z++)
-				{
-					if(arr[a+z][b]==0) inspect++;
-				}
-				if(inspect==2)
-				{
-					for(int z=0; z<2; z++)
-					{
-						arr[a+z][b]=1;
-					}
-					break;
-				}
-			}
-			if(a>=1)
-			{
-				inspect=0;
-				for(int z=0; z<2; z++)
-				{
-					if(arr[a-z][b]==0) inspect++;
-				}
-				if(inspect==2)
-				{
-					for(int z=0; z<2; z++)
-					{
-						arr[a-z][b]=1;
-					}
-					break;
-				}
-			}
-		}
-		if(df==2)
-		{
-			if(b<=8)
-			{
-				inspect=0;
-				for(int z=0; z<2; z++)
-				{
-					if(arr[a][b+z]==0) inspect++;
-				}
-				if(inspect==2)
-				{
-					for(int z=0; z<2; z++)
-					{
-						arr[a][b+z]=1;
-					}
-					break;
-				}
-			}
-			if(b>=1)
-			{
-				inspect=0;
-				for(int z=0; z<2; z++)
-				{
-					if(arr[a][b-z]==0) inspect++;
-				}
-				if(inspect==2)
-				{
-					for(int z=0; z<2; z++)
-					{
-						arr[a][b-z]=1;
-					}
-					break;
-				}
-			}
-		}
-	}
+    (*row)--;
+    (*column)--;
+    return 1;
 }
 
-void PShip(int arr[][N], char darr[][N], char *ptr)
+static int readTarget(int *row, int *column)
 {
-	//initializations
-	int x,y,dir,inspect;
+    char input[MAX_INPUT_LENGTH];
+    char extra;
 
-	//DispPLRboard(darr, ptr);
+    if (!readLine(input, sizeof(input)))
+    {
+        return 0;
+    }
+    if (sscanf(input, " %d %d %c", row, column, &extra) != 2 ||
+        *row < 1 || *row > BOARD_SIZE ||
+        *column < 1 || *column > BOARD_SIZE)
+    {
+        return -1;
+    }
 
-	//Aircraft Carrier
-	while(1)
-	{
-		//Co-ordinates, Orientation and Input Validation
-		DispPLRboard(darr, ptr);
-		printf("\nPlace your Aircraft Carrier:\t");
-		scanf(" %d %d", &x, &y);
-		if(x<0 || x>9 || y<0 || y>9)
-		{
-			printf("Invalid Co-ordinates\n\n");
-			continue;
-		}
-		printf("Select Orientation:\n1.\tVertical UP\n2.\tVertical DOWN\n3.\tHorizontal RIGHT\n4.\tHorizontal LEFT\n\n");
-		scanf(" %d", &dir);
-		if(dir<1 || dir>4)
-		{
-			printf("Invalid Selection\n\n");
-			continue;
-		}
-
-		//Ship Placement
-		if(dir==1)
-		{
-			if(x>=4)
-			{
-				inspect=0;
-				for(int z=0; z<5; z++)
-				{
-					if(arr[x-z][y]==0) inspect++;
-				}
-				if(inspect==5)
-				{
-					for(int z=0; z<5; z++)
-					{
-						arr[x-z][y]=1;
-						darr[x-z][y]='#';
-					}
-					printf("Aircraft Carrier Placed Successfully\n\n");
-					break;
-				}
-				else
-				{
-					printf("Ship Placement Unsuccessfull\nPlease Try different Co-ordinates\n\n");
-				}
-			}
-			else
-			{
-				printf("Ship Placement Unsuccessfull\nPlease Try different Co-ordinates\n\n");
-			}
-		}
-		if(dir==2)
-		{
-			if(x<=5)
-			{
-				inspect=0;
-				for(int z=0; z<5; z++)
-				{
-					if(arr[x+z][y]==0) inspect++;
-				}
-				if(inspect==5)
-				{
-					for(int z=0; z<5; z++)
-					{
-						arr[x+z][y]=1;
-						darr[x+z][y]='#';
-					}
-					printf("Aircraft Carrier Placed Successfully\n\n");
-					break;
-				}
-				else
-				{
-					printf("Ship Placement Unsuccessfull\nPlease Try different Co-ordinates\n\n");
-				}
-			}
-			else
-			{
-				printf("Ship Placement Unsuccessfull\nPlease Try different Co-ordinates\n\n");
-			}
-		}
-		if(dir==3)
-		{
-			if(y<=5)
-			{
-				inspect=0;
-				for(int z=0; z<5; z++)
-				{
-					if(arr[x][y+z]==0) inspect++;
-				}
-				if(inspect==5)
-				{
-					for(int z=0; z<5; z++)
-					{
-						arr[x][y+z]=1;
-						darr[x][y+z]='#';
-					}
-					printf("Aircraft Carrier Placed Successfully\n\n");
-					break;
-				}
-				else
-				{
-					printf("Ship Placement Unsuccessfull\nPlease Try different Co-ordinates\n\n");
-				}
-			}
-			else
-			{
-				printf("Ship Placement Unsuccessfull\nPlease Try different Co-ordinates\n\n");
-			}
-		}
-		if(dir==4)
-		{
-			if(y>=4)
-			{
-				inspect=0;
-				for(int z=0; z<5; z++)
-				{
-					if(arr[x][y-z]==0) inspect++;
-				}
-				if(inspect==5)
-				{
-					for(int z=0; z<5; z++)
-					{
-						arr[x][y-z]=1;
-						darr[x][y-z]='#';
-					}
-					printf("Aircraft Carrier Placed Successfully\n\n");
-					break;
-				}
-				else
-				{
-					printf("Ship Placement Unsuccessfull\nPlease Try different Co-ordinates\n\n");
-				}
-			}
-			else
-			{
-				printf("Ship Placement Unsuccessfull\nPlease Try different Co-ordinates\n\n");
-			}
-		}
-	}
-
-	//Battleship
-	while(1)
-	{
-		//Co-ordinates, Orientation and Input Validation
-		DispPLRboard(darr, ptr);
-		printf("\nPlace your Battleship:\t");
-		scanf(" %d %d", &x, &y);
-		if(x<0 || x>9 || y<0 || y>9)
-		{
-			printf("Invalid Co-ordinates\n\n");
-			continue;
-		}
-		if(arr[x][y]==1)
-		{
-			printf("Space Occupied\nTry another Co-ordinates\n\n");
-			continue;
-		}
-		printf("Select Orientation:\n1.\tVertical UP\n2.\tVertical DOWN\n3.\tHorizontal RIGHT\n4.\tHorizontal LEFT\n\n");
-		scanf(" %d", &dir);
-		if(dir<1 || dir>4)
-		{
-			printf("Invalid Selection\n\n");
-			continue;
-		}
-
-		//Ship Placement
-		if(dir==1)
-		{
-			if(x>=3)
-			{
-				inspect=0;
-				for(int z=0; z<4; z++)
-				{
-					if(arr[x-z][y]==0) inspect++;
-				}
-				if(inspect==4)
-				{
-					for(int z=0; z<4; z++)
-					{
-						arr[x-z][y]=1;
-						darr[x-z][y]='#';
-					}
-					printf("Battleship Placed Successfully\n\n");
-					break;
-				}
-				else
-				{
-					printf("Ship Placement Unsuccessfull\nPlease Try different Co-ordinates\n\n");
-				}
-			}
-			else
-			{
-				printf("Ship Placement Unsuccessfull\nPlease Try different Co-ordinates\n\n");
-			}
-		}
-		if(dir==2)
-		{
-			if(x<=6)
-			{
-				inspect=0;
-				for(int z=0; z<4; z++)
-				{
-					if(arr[x+z][y]==0) inspect++;
-				}
-				if(inspect==4)
-				{
-					for(int z=0; z<4; z++)
-					{
-						arr[x+z][y]=1;
-						darr[x+z][y]='#';
-					}
-					printf("Battleship Placed Successfully\n\n");
-					break;
-				}
-				else
-				{
-					printf("Ship Placement Unsuccessfull\nPlease Try different Co-ordinates\n\n");
-				}
-			}
-			else
-			{
-				printf("Ship Placement Unsuccessfull\nPlease Try different Co-ordinates\n\n");
-			}
-		}
-		if(dir==3)
-		{
-			if(y<=6)
-			{
-				inspect=0;
-				for(int z=0; z<4; z++)
-				{
-					if(arr[x][y+z]==0) inspect++;
-				}
-				if(inspect==4)
-				{
-					for(int z=0; z<4; z++)
-					{
-						arr[x][y+z]=1;
-						darr[x][y+z]='#';
-					}
-					printf("Battleship Placed Successfully\n\n");
-					break;
-				}
-				else
-				{
-					printf("Ship Placement Unsuccessfull\nPlease Try different Co-ordinates\n\n");
-				}
-			}
-			else
-			{
-				printf("Ship Placement Unsuccessfull\nPlease Try different Co-ordinates\n\n");
-			}
-		}
-		if(dir==4)
-		{
-			if(y>=3)
-			{
-				inspect=0;
-				for(int z=0; z<4; z++)
-				{
-					if(arr[x][y-z]==0) inspect++;
-				}
-				if(inspect==4)
-				{
-					for(int z=0; z<4; z++)
-					{
-						arr[x][y-z]=1;
-						darr[x][y-z]='#';
-					}
-					printf("Battleship Placed Successfully\n\n");
-					break;
-				}
-				else
-				{
-					printf("Ship Placement Unsuccessfull\nPlease Try different Co-ordinates\n\n");
-				}
-			}
-			else
-			{
-				printf("Ship Placement Unsuccessfull\nPlease Try different Co-ordinates\n\n");
-			}
-		}
-	}
-
-	//Cruiser
-	while(1)
-	{
-		//Co-ordinates, Orientation and Input Validation
-		DispPLRboard(darr, ptr);
-		printf("\nPlace your Cruiser:\t");
-		scanf(" %d %d", &x, &y);
-		if(x<0 || x>9 || y<0 || y>9)
-		{
-			printf("Invalid Co-ordinates\n\n");
-			continue;
-		}
-		if(arr[x][y]==1)
-		{
-			printf("Space Occupied\nTry another Co-ordinates\n\n");
-			continue;
-		}
-		printf("Select Orientation:\n1.\tVertical UP\n2.\tVertical DOWN\n3.\tHorizontal RIGHT\n4.\tHorizontal LEFT\n\n");
-		scanf(" %d", &dir);
-		if(dir<1 || dir>4)
-		{
-			printf("Invalid Selection\n\n");
-			continue;
-		}
-
-		//Ship Placement
-		if(dir==1)
-		{
-			if(x>=2)
-			{
-				inspect=0;
-				for(int z=0; z<3; z++)
-				{
-					if(arr[x-z][y]==0) inspect++;
-				}
-				if(inspect==3)
-				{
-					for(int z=0; z<3; z++)
-					{
-						arr[x-z][y]=1;
-						darr[x-z][y]='#';
-					}
-					printf("Cruiser Placed Successfully\n\n");
-					break;
-				}
-				else
-				{
-					printf("Ship Placement Unsuccessfull\nPlease Try different Co-ordinates\n\n");
-				}
-			}
-			else
-			{
-				printf("Ship Placement Unsuccessfull\nPlease Try different Co-ordinates\n\n");
-			}
-		}
-		if(dir==2)
-		{
-			if(x<=7)
-			{
-				inspect=0;
-				for(int z=0; z<3; z++)
-				{
-					if(arr[x+z][y]==0) inspect++;
-				}
-				if(inspect==3)
-				{
-					for(int z=0; z<3; z++)
-					{
-						arr[x+z][y]=1;
-						darr[x+z][y]='#';
-					}
-					printf("Cruiser Placed Successfully\n\n");
-					break;
-				}
-				else
-				{
-					printf("Ship Placement Unsuccessfull\nPlease Try different Co-ordinates\n\n");
-				}
-			}
-			else
-			{
-				printf("Ship Placement Unsuccessfull\nPlease Try different Co-ordinates\n\n");
-			}
-		}
-		if(dir==3)
-		{
-			if(y<=7)
-			{
-				inspect=0;
-				for(int z=0; z<3; z++)
-				{
-					if(arr[x][y+z]==0) inspect++;
-				}
-				if(inspect==3)
-				{
-					for(int z=0; z<3; z++)
-					{
-						arr[x][y+z]=1;
-						darr[x][y+z]='#';
-					}
-					printf("Cruiser Placed Successfully\n\n");
-					break;
-				}
-				else
-				{
-					printf("Ship Placement Unsuccessfull\nPlease Try different Co-ordinates\n\n");
-				}
-			}
-			else
-			{
-				printf("Ship Placement Unsuccessfull\nPlease Try different Co-ordinates\n\n");
-			}
-		}
-		if(dir==4)
-		{
-			if(y>=2)
-			{
-				inspect=0;
-				for(int z=0; z<3; z++)
-				{
-					if(arr[x][y-z]==0) inspect++;
-				}
-				if(inspect==3)
-				{
-					for(int z=0; z<3; z++)
-					{
-						arr[x][y-z]=1;
-						darr[x][y-z]='#';
-					}
-					printf("Cruiser Placed Successfully\n\n");
-					break;
-				}
-				else
-				{
-					printf("Ship Placement Unsuccessfull\nPlease Try different Co-ordinates\n\n");
-				}
-			}
-			else
-			{
-				printf("Ship Placement Unsuccessfull\nPlease Try different Co-ordinates\n\n");
-			}
-		}
-	}
-
-	//Submarine
-	while(1)
-	{
-		//Co-ordinates, Orientation and Input Validation
-		DispPLRboard(darr, ptr);
-		printf("\nPlace your Submarine:\t");
-		scanf(" %d %d", &x, &y);
-		if(x<0 || x>9 || y<0 || y>9)
-		{
-			printf("Invalid Co-ordinates\n\n");
-			continue;
-		}
-		if(arr[x][y]==1)
-		{
-			printf("Space Occupied\nTry another Co-ordinates\n\n");
-			continue;
-		}
-		printf("Select Orientation:\n1.\tVertical UP\n2.\tVertical DOWN\n3.\tHorizontal RIGHT\n4.\tHorizontal LEFT\n\n");
-		scanf(" %d", &dir);
-		if(dir<1 || dir>4)
-		{
-			printf("Invalid Selection\n\n");
-			continue;
-		}
-
-		//Ship Placement
-		if(dir==1)
-		{
-			if(x>=2)
-			{
-				inspect=0;
-				for(int z=0; z<3; z++)
-				{
-					if(arr[x-z][y]==0) inspect++;
-				}
-				if(inspect==3)
-				{
-					for(int z=0; z<3; z++)
-					{
-						arr[x-z][y]=1;
-						darr[x-z][y]='#';
-					}
-					printf("Submarine Placed Successfully\n\n");
-					break;
-				}
-				else
-				{
-					printf("Ship Placement Unsuccessfull\nPlease Try different Co-ordinates\n\n");
-				}
-			}
-			else
-			{
-				printf("Ship Placement Unsuccessfull\nPlease Try different Co-ordinates\n\n");
-			}
-		}
-		if(dir==2)
-		{
-			if(x<=7)
-			{
-				inspect=0;
-				for(int z=0; z<3; z++)
-				{
-					if(arr[x+z][y]==0) inspect++;
-				}
-				if(inspect==3)
-				{
-					for(int z=0; z<3; z++)
-					{
-						arr[x+z][y]=1;
-						darr[x+z][y]='#';
-					}
-					printf("Submarine Placed Successfully\n\n");
-					break;
-				}
-				else
-				{
-					printf("Ship Placement Unsuccessfull\nPlease Try different Co-ordinates\n\n");
-				}
-			}
-			else
-			{
-				printf("Ship Placement Unsuccessfull\nPlease Try different Co-ordinates\n\n");
-			}
-		}
-		if(dir==3)
-		{
-			if(y<=7)
-			{
-				inspect=0;
-				for(int z=0; z<3; z++)
-				{
-					if(arr[x][y+z]==0) inspect++;
-				}
-				if(inspect==3)
-				{
-					for(int z=0; z<3; z++)
-					{
-						arr[x][y+z]=1;
-						darr[x][y+z]='#';
-					}
-					printf("Submarine Placed Successfully\n\n");
-					break;
-				}
-				else
-				{
-					printf("Ship Placement Unsuccessfull\nPlease Try different Co-ordinates\n\n");
-				}
-			}
-			else
-			{
-				printf("Ship Placement Unsuccessfull\nPlease Try different Co-ordinates\n\n");
-			}
-		}
-		if(dir==4)
-		{
-			if(y>=2)
-			{
-				inspect=0;
-				for(int z=0; z<3; z++)
-				{
-					if(arr[x][y-z]==0) inspect++;
-				}
-				if(inspect==3)
-				{
-					for(int z=0; z<3; z++)
-					{
-						arr[x][y-z]=1;
-						darr[x][y-z]='#';
-					}
-					printf("Submarine Placed Successfully\n\n");
-					break;
-				}
-				else
-				{
-					printf("Ship Placement Unsuccessfull\nPlease Try different Co-ordinates\n\n");
-				}
-			}
-			else
-			{
-				printf("Ship Placement Unsuccessfull\nPlease Try different Co-ordinates\n\n");
-			}
-		}
-	}
-
-	//Patrol Boat
-	while(1)
-	{
-		//Co-ordinates, Orientation and Input Validation
-		DispPLRboard(darr, ptr);
-		printf("\nPlace your Patrol Boat:\t");
-		scanf(" %d %d", &x, &y);
-		if(x<0 || x>9 || y<0 || y>9)
-		{
-			printf("Invalid Co-ordinates\n\n");
-			continue;
-		}
-		if(arr[x][y]==1)
-		{
-			printf("Space Occupied\nTry another Co-ordinates\n\n");
-			continue;
-		}
-		printf("Select Orientation:\n1.\tVertical UP\n2.\tVertical DOWN\n3.\tHorizontal RIGHT\n4.\tHorizontal LEFT\n\n");
-		scanf(" %d", &dir);
-		if(dir<1 || dir>4)
-		{
-			printf("Invalid Selection\n\n");
-			continue;
-		}
-
-		//Ship Placement
-		if(dir==1)
-		{
-			if(x>=1)
-			{
-				inspect=0;
-				for(int z=0; z<2; z++)
-				{
-					if(arr[x-z][y]==0) inspect++;
-				}
-				if(inspect==2)
-				{
-					for(int z=0; z<2; z++)
-					{
-						arr[x-z][y]=1;
-						darr[x-z][y]='#';
-					}
-					printf("Patrol Boat Placed Successfully\n\n");
-					break;
-				}
-				else
-				{
-					printf("Ship Placement Unsuccessfull\nPlease Try different Co-ordinates\n\n");
-				}
-			}
-			else
-			{
-				printf("Ship Placement Unsuccessfull\nPlease Try different Co-ordinates\n\n");
-			}
-		}
-		if(dir==2)
-		{
-			if(x<=8)
-			{
-				inspect=0;
-				for(int z=0; z<2; z++)
-				{
-					if(arr[x+z][y]==0) inspect++;
-				}
-				if(inspect==2)
-				{
-					for(int z=0; z<2; z++)
-					{
-						arr[x+z][y]=1;
-						darr[x+z][y]='#';
-					}
-					printf("Patrol Boat Placed Successfully\n\n");
-					break;
-				}
-				else
-				{
-					printf("Ship Placement Unsuccessfull\nPlease Try different Co-ordinates\n\n");
-				}
-			}
-			else
-			{
-				printf("Ship Placement Unsuccessfull\nPlease Try different Co-ordinates\n\n");
-			}
-		}
-		if(dir==3)
-		{
-			if(y<=8)
-			{
-				inspect=0;
-				for(int z=0; z<2; z++)
-				{
-					if(arr[x][y+z]==0) inspect++;
-				}
-				if(inspect==2)
-				{
-					for(int z=0; z<2; z++)
-					{
-						arr[x][y+z]=1;
-						darr[x][y+z]='#';
-					}
-					printf("Patrol Boat Placed Successfully\n\n");
-					break;
-				}
-				else
-				{
-					printf("Ship Placement Unsuccessfull\nPlease Try different Co-ordinates\n\n");
-				}
-			}
-			else
-			{
-				printf("Ship Placement Unsuccessfull\nPlease Try different Co-ordinates\n\n");
-			}
-		}
-		if(dir==4)
-		{
-			if(y>=1)
-			{
-				inspect=0;
-				for(int z=0; z<2; z++)
-				{
-					if(arr[x][y-z]==0) inspect++;
-				}
-				if(inspect==2)
-				{
-					for(int z=0; z<2; z++)
-					{
-						arr[x][y-z]=1;
-						darr[x][y-z]='#';
-					}
-					printf("Patrol Boat Placed Successfully\n\n");
-					break;
-				}
-				else
-				{
-					printf("Ship Placement Unsuccessfull\nPlease Try different Co-ordinates\n\n");
-				}
-			}
-			else
-			{
-				printf("Ship Placement Unsuccessfull\nPlease Try different Co-ordinates\n\n");
-			}
-		}
-	}
-	printf("Combat Zone is Ready..!\n\n");
+    (*row)--;
+    (*column)--;
+    return 1;
 }
 
-int main()
+static void displayBoards(const char *playerName,
+                          int playerShips[BOARD_SIZE][BOARD_SIZE],
+                          char playerShots[BOARD_SIZE][BOARD_SIZE],
+                          char targetShots[BOARD_SIZE][BOARD_SIZE])
 {
-	//Battlefield Setup
-	int Botmat[10][10];
-	int PLRmat[10][10];
-	char dispBotmat[10][10];
-	char dispPLRmat[10][10];
-	for(int i=0; i<10; i++)
-	{
-		for(int j=0; j<10; j++)
-		{
-			Botmat[i][j]=0;
-			PLRmat[i][j]=0;
-			dispBotmat[i][j]='.';
-			dispPLRmat[i][j]='.';
-		}
-	}
+    printf("\nYour fleet                              Kraken's waters\n");
+    printf("   ");
+    for (int column = 1; column <= BOARD_SIZE; column++)
+    {
+        printf("%2d ", column);
+    }
+    printf("       ");
+    for (int column = 1; column <= BOARD_SIZE; column++)
+    {
+        printf("%2d ", column);
+    }
+    printf("\n");
 
-	//Initializations
-	int x,y,PLRSCR=0,KNSCR=0;
-	srand(time(0));
-	char name[20];
-	char *pt;
-	pt= &name[0];
+    for (int row = 0; row < BOARD_SIZE; row++)
+    {
+        printf("%2d ", row + 1);
+        for (int column = 0; column < BOARD_SIZE; column++)
+        {
+            char mark = playerShots[row][column];
+            if (mark == '.')
+            {
+                mark = playerShips[row][column] == 0 ? '~' : 'S';
+            }
+            printf(" %c ", mark);
+        }
 
-	GI(pt);     //Game Intro
+        printf("   %2d ", row + 1);
+        for (int column = 0; column < BOARD_SIZE; column++)
+        {
+            printf(" %c ", targetShots[row][column]);
+        }
+        printf("\n");
+    }
 
-	//Kraken Ship Placement
-	Kraken(Botmat);
-	//Player Ship Placement
-	PShip(PLRmat, dispPLRmat, pt);
+    printf("\nYour fleet: S = ship, X = ship hit, o = incoming miss, ~ = empty water\n");
+    printf("Kraken's waters: X = your hit, o = your miss, . = not fired on\n");
+    printf("%s's fleet is on the left; your targeting board is on the right.\n\n",
+           playerName);
+}
 
-	//Game Loop
-	while(1)
-	{
-		//Player Turn
-		printf("%s's Turn\t[Score: %d ]\n",name, PLRSCR);
-		DispBOTboard(dispBotmat);
-		printf("\nTarget Co-ordinates:\t");
-		scanf(" %d %d", &x, &y);
-		if(x<0 || x>9 || y<0 || y>9)
-		{
-			printf("Invalid Co-ordinates\nTry Again\n\n");
-			continue;
-		}
-		if(dispBotmat[x][y]=='X' || dispBotmat[x][y]=='O')
-		{
-			printf("Already Hit...Try Different Co-ordinates\n\n");
-			continue;
-		}
-		if(Botmat[x][y]==1)
-		{
-			printf("Hit!!");
-			dispBotmat[x][y]='X';
-			PLRSCR++;
-			if(PLRSCR!=17)
-			{
-				printf(" Take Another Shot..!\n\n");
-				continue;
-			}
-			printf("\n\n");
-		}
-		if(Botmat[x][y]==0)
-		{
-			printf("Miss..!\n\n");
-			dispBotmat[x][y]='O';
-		}
+static void displayFleetPlacement(int ships[BOARD_SIZE][BOARD_SIZE])
+{
+    printf("\nYour fleet placement (S = ship, ~ = free water)\n   ");
+    for (int column = 1; column <= BOARD_SIZE; column++)
+    {
+        printf("%2d ", column);
+    }
+    printf("\n");
 
-		//End Check
-		if(PLRSCR==17 || KNSCR==17)
-		{
-			if(PLRSCR==17)
-			{
-				printf("Congratulations! You won the Game..!!\n");
-			}
-			if(KNSCR==17)
-			{
-				printf("You Lost to Mr.Kraken..!\n");
-			}
-			break;
-		}
+    for (int row = 0; row < BOARD_SIZE; row++)
+    {
+        printf("%2d ", row + 1);
+        for (int column = 0; column < BOARD_SIZE; column++)
+        {
+            printf(" %c ", ships[row][column] == 0 ? '~' : 'S');
+        }
+        printf("\n");
+    }
+    printf("\n");
+}
 
-		printf("Mr.Kraken's Turn\t[Score: %d ]\n",KNSCR);
-		//Mr.Kraken
-		while(1)
-		{
-			x=(rand()%10);
-			y=(rand()%10);
-			if(dispPLRmat[x][y]=='X' || dispPLRmat[x][y]=='O')
-			{
-				continue;
-			}
-			printf("Mr.Kraken Fires at: %d %d\n", x,y);
-			if(PLRmat[x][y]==0)
-			{
-				printf("Miss..!\n\n");
-				dispPLRmat[x][y]='O';
-				break;
-			}
-			if(PLRmat[x][y]==1)
-			{
-				printf("Hit!! ");
-				dispPLRmat[x][y]='X';
-				KNSCR++;
-				if(KNSCR==17) break;
-				printf("Take Another Shot..!\n\n");
-				continue;
-			}
-		}
-		DispPLRboard(dispPLRmat, pt);
-		printf("\n");
+static int canPlaceShip(int board[BOARD_SIZE][BOARD_SIZE],
+                        int row, int column, int size, char orientation)
+{
+    if (orientation == 'H' && column + size > BOARD_SIZE)
+    {
+        return 0;
+    }
+    if (orientation == 'V' && row + size > BOARD_SIZE)
+    {
+        return 0;
+    }
 
-		//End Check
-		if(PLRSCR==17 || KNSCR==17)
-		{
-			if(PLRSCR==17)
-			{
-				printf("Congratulations! You won the Game..!!\n");
-			}
-			if(KNSCR==17)
-			{
-				printf("You Lost to Mr.Kraken..!\n");
-			}
-			break;
-		}
-	}
+    for (int offset = 0; offset < size; offset++)
+    {
+        int shipRow = row + (orientation == 'V' ? offset : 0);
+        int shipColumn = column + (orientation == 'H' ? offset : 0);
+        if (board[shipRow][shipColumn] != 0)
+        {
+            return 0;
+        }
+    }
+
+    return 1;
+}
+
+static void placeShip(int board[BOARD_SIZE][BOARD_SIZE], int shipId,
+                      int row, int column, char orientation)
+{
+    for (int offset = 0; offset < fleet[shipId].size; offset++)
+    {
+        int shipRow = row + (orientation == 'V' ? offset : 0);
+        int shipColumn = column + (orientation == 'H' ? offset : 0);
+        board[shipRow][shipColumn] = shipId + 1;
+    }
+}
+
+static int placePlayerFleet(int board[BOARD_SIZE][BOARD_SIZE])
+{
+    displayFleetPlacement(board);
+    for (int shipId = 0; shipId < SHIP_COUNT; shipId++)
+    {
+        for (;;)
+        {
+            int row;
+            int column;
+            char orientation;
+            int result;
+
+            printf("Place your %s (length %d).\n",
+                   fleet[shipId].name, fleet[shipId].size);
+            printf("Enter row column orientation (H/V), e.g. 3 4 H: ");
+            result = readPlacement(&row, &column, &orientation);
+            if (result == 0)
+            {
+                return 0;
+            }
+            if (result < 0)
+            {
+                printf("Invalid input. Use row and column 1-10, followed by H or V.\n\n");
+                continue;
+            }
+            if (!canPlaceShip(board, row, column, fleet[shipId].size, orientation))
+            {
+                printf("That ship does not fit there or overlaps another ship. Try again.\n\n");
+                continue;
+            }
+
+            placeShip(board, shipId, row, column, orientation);
+            printf("%s placed.\n\n", fleet[shipId].name);
+            displayFleetPlacement(board);
+            break;
+        }
+    }
+
+    return 1;
+}
+
+static void placeComputerFleet(int board[BOARD_SIZE][BOARD_SIZE])
+{
+    for (int shipId = 0; shipId < SHIP_COUNT; shipId++)
+    {
+        int row;
+        int column;
+        char orientation;
+
+        do
+        {
+            row = rand() % BOARD_SIZE;
+            column = rand() % BOARD_SIZE;
+            orientation = rand() % 2 == 0 ? 'H' : 'V';
+        } while (!canPlaceShip(board, row, column, fleet[shipId].size, orientation));
+
+        placeShip(board, shipId, row, column, orientation);
+    }
+}
+
+static void initializeShots(char shots[BOARD_SIZE][BOARD_SIZE])
+{
+    for (int row = 0; row < BOARD_SIZE; row++)
+    {
+        for (int column = 0; column < BOARD_SIZE; column++)
+        {
+            shots[row][column] = '.';
+        }
+    }
+}
+
+static int remainingShipCells(const int remaining[SHIP_COUNT])
+{
+    int cells = 0;
+    for (int shipId = 0; shipId < SHIP_COUNT; shipId++)
+    {
+        cells += remaining[shipId];
+    }
+    return cells;
+}
+
+static void reportHit(int shipId, int remaining[SHIP_COUNT], const char *attacker)
+{
+    remaining[shipId]--;
+    printf("Hit! %s struck the %s.\n", attacker, fleet[shipId].name);
+    if (remaining[shipId] == 0)
+    {
+        printf("%s's %s has been sunk!\n",
+               attacker, fleet[shipId].name);
+    }
+}
+
+static void addComputerTargets(int row, int column, int shots[BOARD_SIZE][BOARD_SIZE],
+                               int targets[MAX_TARGETS][2], int *targetCount)
+{
+    int rowOffsets[] = {-1, 1, 0, 0};
+    int columnOffsets[] = {0, 0, -1, 1};
+
+    for (int direction = 3; direction > 0; direction--)
+    {
+        int other = rand() % (direction + 1);
+        int temp = rowOffsets[direction];
+        rowOffsets[direction] = rowOffsets[other];
+        rowOffsets[other] = temp;
+        temp = columnOffsets[direction];
+        columnOffsets[direction] = columnOffsets[other];
+        columnOffsets[other] = temp;
+    }
+
+    for (int direction = 0; direction < 4; direction++)
+    {
+        int targetRow = row + rowOffsets[direction];
+        int targetColumn = column + columnOffsets[direction];
+        if (targetRow >= 0 && targetRow < BOARD_SIZE &&
+            targetColumn >= 0 && targetColumn < BOARD_SIZE &&
+            shots[targetRow][targetColumn] == 0 &&
+            *targetCount < MAX_TARGETS)
+        {
+            targets[*targetCount][0] = targetRow;
+            targets[*targetCount][1] = targetColumn;
+            (*targetCount)++;
+        }
+    }
+}
+
+static int chooseComputerTarget(int shots[BOARD_SIZE][BOARD_SIZE],
+                                int targets[MAX_TARGETS][2], int *targetCount,
+                                int *row, int *column)
+{
+    while (*targetCount > 0)
+    {
+        int index = --(*targetCount);
+        *row = targets[index][0];
+        *column = targets[index][1];
+        if (shots[*row][*column] == 0)
+        {
+            return 1;
+        }
+    }
+
+    {
+        int available[BOARD_SIZE * BOARD_SIZE][2];
+        int availableCount = 0;
+
+        for (int targetRow = 0; targetRow < BOARD_SIZE; targetRow++)
+        {
+            for (int targetColumn = 0; targetColumn < BOARD_SIZE; targetColumn++)
+            {
+                if (shots[targetRow][targetColumn] == 0)
+                {
+                    available[availableCount][0] = targetRow;
+                    available[availableCount][1] = targetColumn;
+                    availableCount++;
+                }
+            }
+        }
+
+        if (availableCount == 0)
+        {
+            return 0;
+        }
+
+        {
+            int choice = rand() % availableCount;
+            *row = available[choice][0];
+            *column = available[choice][1];
+        }
+    }
+    return 1;
+}
+
+int main(void)
+{
+    int computerShips[BOARD_SIZE][BOARD_SIZE] = {{0}};
+    int playerShips[BOARD_SIZE][BOARD_SIZE] = {{0}};
+    int playerRemaining[SHIP_COUNT];
+    int computerRemaining[SHIP_COUNT];
+    int computerShots[BOARD_SIZE][BOARD_SIZE] = {{0}};
+    int targets[MAX_TARGETS][2];
+    int targetCount = 0;
+    char playerShots[BOARD_SIZE][BOARD_SIZE];
+    char computerShotMarks[BOARD_SIZE][BOARD_SIZE];
+    char playerName[MAX_NAME_LENGTH + 1];
+
+    srand((unsigned int)time(NULL));
+    for (int shipId = 0; shipId < SHIP_COUNT; shipId++)
+    {
+        playerRemaining[shipId] = fleet[shipId].size;
+        computerRemaining[shipId] = fleet[shipId].size;
+    }
+    printf("========== BATTLESHIP ==========\n");
+    printf("Sink all 17 sections of Mr. Kraken's fleet to win.\n");
+    printf("Rows and columns are numbered 1-10. Ships are placed horizontally or vertically.\n");
+    printf("Enter your name: ");
+    if (!readLine(playerName, sizeof(playerName)))
+    {
+        printf("\nGoodbye!\n");
+        return 0;
+    }
+    if (playerName[0] == '\0')
+    {
+        strcpy(playerName, "Captain");
+    }
+
+    initializeShots(playerShots);
+    initializeShots(computerShotMarks);
+    placeComputerFleet(computerShips);
+
+    printf("\n%s, place your fleet. Ships may touch but cannot overlap.\n\n", playerName);
+    if (!placePlayerFleet(playerShips))
+    {
+        printf("\nInput ended during fleet placement. Goodbye!\n");
+        return 0;
+    }
+
+    printf("\nYour fleet is ready. Let the battle begin!\n");
+    displayBoards(playerName, playerShips, computerShotMarks, playerShots);
+
+    while (remainingShipCells(computerRemaining) > 0 &&
+           remainingShipCells(playerRemaining) > 0)
+    {
+        int row;
+        int column;
+        int result;
+
+        for (;;)
+        {
+            printf("%s's turn (%d enemy ship sections remaining).\n",
+                   playerName, remainingShipCells(computerRemaining));
+            printf("Fire at row column (1-10 1-10): ");
+            result = readTarget(&row, &column);
+            if (result == 0)
+            {
+                printf("\nInput ended. The battle is over.\n");
+                return 0;
+            }
+            if (result < 0)
+            {
+                printf("Invalid coordinates. Enter two numbers from 1 to 10.\n");
+                continue;
+            }
+            if (playerShots[row][column] != '.')
+            {
+                printf("You already fired there. Choose a different target.\n");
+                continue;
+            }
+            break;
+        }
+
+        if (computerShips[row][column] > 0)
+        {
+            int shipId = computerShips[row][column] - 1;
+            playerShots[row][column] = 'X';
+            reportHit(shipId, computerRemaining, playerName);
+            if (remainingShipCells(computerRemaining) == 0)
+            {
+                break;
+            }
+            printf("Direct hit! You get another shot.\n\n");
+            displayBoards(playerName, playerShips, computerShotMarks, playerShots);
+            continue;
+        }
+
+        playerShots[row][column] = 'o';
+        printf("Miss!\n\n");
+
+        do
+        {
+            if (!chooseComputerTarget(computerShots, targets, &targetCount,
+                                      &row, &column))
+            {
+                break;
+            }
+
+            printf("Mr. Kraken fires at row %d, column %d: ",
+                   row + 1, column + 1);
+            computerShots[row][column] = 1;
+            if (playerShips[row][column] > 0)
+            {
+                int shipId = playerShips[row][column] - 1;
+                computerShotMarks[row][column] = 'X';
+                reportHit(shipId, playerRemaining, "Mr. Kraken");
+                if (remainingShipCells(playerRemaining) == 0)
+                {
+                    break;
+                }
+                if (computerRemaining[shipId] == 0)
+                {
+                    targetCount = 0;
+                }
+                else
+                {
+                    addComputerTargets(row, column, computerShots, targets, &targetCount);
+                }
+            }
+            else
+            {
+                computerShotMarks[row][column] = 'o';
+                printf("Miss.\n");
+                break;
+            }
+        } while (remainingShipCells(playerRemaining) > 0);
+
+        printf("\n");
+        displayBoards(playerName, playerShips, computerShotMarks, playerShots);
+    }
+
+    if (remainingShipCells(computerRemaining) == 0)
+    {
+        printf("Victory, %s! You sank Mr. Kraken's entire fleet!\n", playerName);
+    }
+    else
+    {
+        printf("Mr. Kraken sank your fleet. Better luck next time, %s!\n", playerName);
+    }
+
+    return 0;
 }
