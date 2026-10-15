@@ -1,434 +1,267 @@
-#include <stdlib.h>
+#include <ctype.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <time.h>
 
-int MvRvl()     //Move Selector
+#define MAX_HEALTH 100
+
+typedef struct
 {
-	int mv;
-	mv=(rand()%9)+1;
-	return mv;
+    const char *name;
+    const char *attackName;
+    int attackPower;
+    int defensePower;
+    int healPower;
+} Pokemon;
+
+typedef enum
+{
+    ATTACK = 1,
+    DEFEND,
+    HEAL
+} Action;
+
+static const Pokemon starters[] = {
+    {"Charmander", "Ember", 20, 15, 10},
+    {"Squirtle", "Water Gun", 15, 20, 10},
+    {"Bulbasaur", "Vine Whip", 15, 15, 15}};
+
+static const Pokemon rivals[] = {
+    {"Squirtle", "Water Gun", 25, 20, 10},
+    {"Bulbasaur", "Vine Whip", 25, 15, 15},
+    {"Charmander", "Ember", 30, 15, 10}};
+
+static int readInteger(const char *prompt, int minimum, int maximum, int *value)
+{
+    char input[128];
+
+    for (;;)
+    {
+        char *end;
+        long parsed;
+
+        printf("%s", prompt);
+        if (fgets(input, sizeof(input), stdin) == NULL)
+        {
+            return 0;
+        }
+
+        parsed = strtol(input, &end, 10);
+        while (isspace((unsigned char)*end))
+        {
+            end++;
+        }
+
+        if (end != input && *end == '\0' && parsed >= minimum && parsed <= maximum)
+        {
+            *value = (int)parsed;
+            return 1;
+        }
+
+        printf("Please enter a number from %d to %d.\n", minimum, maximum);
+    }
 }
 
-// Structure definition
-struct Pokedex {
-	int DexNo;
-	char PmName[12];
-};
-
-void GI(void)       //Game Intro
+static int readPlayAgain(void)
 {
-	printf("\t\t\t\t\t-----Pokemon Champions-----\n\n");
-	printf("Prof. Oak: Hey Ash, I am Professor Oak, glad to meet you! Gary and Me were waiting for you.\n\tBoth of you are officially going to begin with your Pokemon Journey.\n\tFor that, you need a partner to accompany you!\n\tI have 3 Starter Pokemons to Offer:\n\t1.\tCharmander: The Fire Type Pokemon\n\t2.\tSquirtle: The Water Type Pokemon\n\t3.\tBulbasaur: The Grass Type Pokemon\n\n");
-	printf("Prof.Oak: Gary, go on! Choose your Pokemon..!\nGary: I would like to give this Opportunity to Ash. He may choose his Pokemon First.\nProf. Oak: Alright Ash, Choose your Pokemon..!\n\n");
+    char input[128];
+
+    for (;;)
+    {
+        printf("\nWould you like to play again? (y/n): ");
+        if (fgets(input, sizeof(input), stdin) == NULL)
+        {
+            return 0;
+        }
+
+        if (tolower((unsigned char)input[0]) == 'y')
+        {
+            return 1;
+        }
+        if (tolower((unsigned char)input[0]) == 'n')
+        {
+            return 0;
+        }
+
+        printf("Please enter y or n.\n");
+    }
 }
 
-int FoePoke(int P)      //Gary's Pokemon
+static void displayHealth(const Pokemon *player, int playerHealth,
+                          const Pokemon *rival, int rivalHealth)
 {
-	int R;
-	switch(P)
-	{
-	case 1:
-	{
-		R=2;
-		break;
-	}
-	case 2:
-	{
-		R=3;
-		break;
-	}
-	case 3:
-	{
-		R=1;
-		break;
-	}
-	}
-	return R;
-}
-void Fire(struct Pokedex *p)    //Charmander VS Squirtle
-{
-	//Initialization
-	int Uatk=20, Udef=15, Uheal=10;
-	int Ratk=25, Rdef=20, Rheal=10;
-	int fireliz=100, watertort=100;
-	int UserMV, RvlMV;
-	int UD=0,RD=0;
-
-	//Game Loop
-	while(1)
-	{
-		//Battle Options and User-Rival Input
-		printf("What will %s do?\n", p[0].PmName);
-		printf("1.\tAttack\n2.\tDefend\n3.\tHeal\n");
-		scanf(" %d", &UserMV);
-		if(UserMV<1 || UserMV>3)
-		{
-			printf("Invalid Selection\n\n");
-			continue;
-		}
-		RvlMV=MvRvl();
-
-		//Defence of both Parties
-		if(UserMV==2)
-		{
-			printf("\tCharmander Used Defence Curl\n");
-			UD=1;
-		}
-		if(RvlMV>4 && RvlMV<8)
-		{
-			printf("\tSquirtle Used Defence Curl\n");
-			RD=1;
-		}
-
-		//Attack
-		if(UserMV==1)
-		{
-			printf("\tCharmander Used Ember\n");
-			if(RD==0)
-			{
-				watertort-=Uatk;
-			}
-			if(RD==1)
-			{
-				watertort-=(abs(Uatk-Rdef));
-				RD--;
-			}
-		}
-		if(watertort<=0 || fireliz<=0)      //End Check
-		{
-			if(watertort<=0)
-			{
-				printf("\nSquirtle Fainted..!\nCharmander Won the Battle\n\nYou Defeated Rival Gary!!");
-			}
-			if(fireliz<=0)
-			{
-				printf("\nCharmander Fainted..!\nSquirtle Won the Battle\n\nRival Gary Defeated you!!");
-			}
-			break;
-		}
-		if(RvlMV<5)
-		{
-			printf("\tSquirtle Used Water Gun\n");
-			if(UD==0)
-			{
-				fireliz-=Ratk;
-			}
-			if(UD==1)
-			{
-				fireliz-=(abs(Ratk-Udef));
-				UD--;
-			}
-		}
-		if(watertort<=0 || fireliz<=0)      //End Check
-		{
-			if(watertort<=0)
-			{
-				printf("\nSquirtle Fainted..!\nCharmander Won the Battle\n\nYou Defeated Rival Gary!!");
-			}
-			if(fireliz<=0)
-			{
-				printf("\nCharmander Fainted..!\nSquirtle Won the Battle\n\nRival Gary Defeated you!!");
-			}
-			break;
-		}
-
-		//Healing for Both Parties
-		if(UserMV==3)
-		{
-			printf("\tCharmander Used Heal Bell\n");
-			fireliz+=Uheal;
-			if(fireliz>100) fireliz=100;
-		}
-		if(RvlMV>7)
-		{
-			printf("\tSquirtle Used Heal Bell\n");
-			watertort+=Rheal;
-			if(watertort>100) watertort=100;
-		}
-
-		//After-Move
-		printf("\nCharmander\t: %d/100\nSquirtle\t: %d/100\n\n", fireliz, watertort);
-		if(RD==1) RD--;
-		if(UD==1) UD--;
-	}
+    printf("\n%s: %d/%d HP\t| %s: %d/%d HP\n",
+           player->name, playerHealth, MAX_HEALTH,
+           rival->name, rivalHealth, MAX_HEALTH);
 }
 
-void Water(struct Pokedex *p)   //Squirtle VS Bulbasaur
+static Action chooseRivalAction(int rivalHealth)
 {
-	//Initialization
-	int Uatk=15, Udef=20, Uheal=10;
-	int Ratk=25, Rdef=15, Rheal=15;
-	int grassbulb=100, watertort=100;
-	int UserMV, RvlMV;
-	int UD=0,RD=0;
+    int choice;
 
-	//Game Loop
-	while(1)
-	{
-		//Battle Options and User-Rival Input
-		printf("What will %s do?\n", p[1].PmName);
-		printf("1.\tAttack\n2.\tDefend\n3.\tHeal\n");
-		scanf(" %d", &UserMV);
-		if(UserMV<1 || UserMV>3)
-		{
-			printf("Invalid Selection\n\n");
-			continue;
-		}
-		RvlMV=MvRvl();
+    if (rivalHealth <= MAX_HEALTH / 3)
+    {
+        return HEAL;
+    }
 
-		//Defence of both Parties
-		if(UserMV==2)
-		{
-			printf("\tSquirtle Used Defence Curl\n");
-			UD=1;
-		}
-		if(RvlMV>4 && RvlMV<8)
-		{
-			printf("\tBulbasaur Used Defence Curl\n");
-			RD=1;
-		}
-
-		//Attack
-		if(UserMV==1)
-		{
-			printf("\tSquirtle Used Water Gun\n");
-			if(RD==0)
-			{
-				grassbulb-=Uatk;
-			}
-			if(RD==1)
-			{
-				grassbulb-=(abs(Uatk-Rdef));
-				RD--;
-			}
-		}
-		if(watertort<=0 || grassbulb<=0)      //End Check
-		{
-			if(grassbulb<=0)
-			{
-				printf("\nBulbasaur Fainted..!\nSquirtle Won the Battle\n\nYou Defeated Rival Gary!!");
-			}
-			if(watertort<=0)
-			{
-				printf("\nSquirtle Fainted..!\nBulbasaur Won the Battle\n\nRival Gary Defeated you!!");
-			}
-			break;
-		}
-		if(RvlMV<5)
-		{
-			printf("\tBulbasaur Used Vine Whip\n");
-			if(UD==0)
-			{
-				watertort-=Ratk;
-			}
-			if(UD==1)
-			{
-				watertort-=(abs(Ratk-Udef));
-				UD--;
-			}
-		}
-		if(watertort<=0 || grassbulb<=0)      //End Check
-		{
-			if(grassbulb<=0)
-			{
-				printf("\nBulbasaur Fainted..!\nSquirtle Won the Battle\n\nYou Defeated Rival Gary!!");
-			}
-			if(watertort<=0)
-			{
-				printf("\nSquirtle Fainted..!\nBulbasaur Won the Battle\n\nRival Gary Defeated you!!");
-			}
-			break;
-		}
-
-		//Healing for Both Parties
-		if(UserMV==3)
-		{
-			printf("\tSquirtle Used Heal Bell\n");
-			watertort+=Uheal;
-			if(watertort>100) watertort=100;
-		}
-		if(RvlMV>7)
-		{
-			printf("\tBulbasaur Used Heal Bell\n");
-			grassbulb+=Rheal;
-			if(grassbulb>100) grassbulb=100;
-		}
-
-		//After-Move
-		printf("\nSquirtle\t: %d/100\nBulbasaur\t: %d/100\n\n", watertort, grassbulb);
-		if(RD==1) RD--;
-		if(UD==1) UD--;
-	}
+    choice = rand() % 10;
+    if (choice < 5)
+    {
+        return ATTACK;
+    }
+    if (choice < 8)
+    {
+        return DEFEND;
+    }
+    return rivalHealth < MAX_HEALTH ? HEAL : ATTACK;
 }
 
-void Grass(struct Pokedex *p)   //Bulbasaur VS Charmander
+static int damageAfterDefense(const Pokemon *attacker, const Pokemon *defender,
+                              int defenderIsDefending)
 {
-	//Initialization
-	int Uatk=15, Udef=15, Uheal=15;
-	int Ratk=30, Rdef=15, Rheal=10;
-	int grassbulb=100, fireliz=100;
-	int UserMV, RvlMV;
-	int UD=0,RD=0;
+    int damage = attacker->attackPower;
 
-	//Game Loop
-	while(1)
-	{
-		//Battle Options and User-Rival Input
-		printf("What will %s do?\n", p[2].PmName);
-		printf("1.\tAttack\n2.\tDefend\n3.\tHeal\n");
-		scanf(" %d", &UserMV);
-		if(UserMV<1 || UserMV>3)
-		{
-			printf("Invalid Selection\n\n");
-			continue;
-		}
-		RvlMV=MvRvl();
-
-		//Defence of both Parties
-		if(UserMV==2)
-		{
-			printf("\tBulbasaur Used Defence Curl\n");
-			UD=1;
-		}
-		if(RvlMV>4 && RvlMV<8)
-		{
-			printf("\tCharmander Used Defence Curl\n");
-			RD=1;
-		}
-
-		//Attack
-		if(UserMV==1)
-		{
-			printf("\tBulbasaur Used Vine Whip\n");
-			if(RD==0)
-			{
-				fireliz-=Uatk;
-			}
-			if(RD==1)
-			{
-				fireliz-=(abs(Uatk-Rdef));
-				RD--;
-			}
-		}
-		if(fireliz<=0 || grassbulb<=0)      //End Check
-		{
-			if(fireliz<=0)
-			{
-				printf("\nCharmander Fainted..!\nBulbasaur Won the Battle\n\nYou Defeated Rival Gary!!");
-			}
-			if(grassbulb<=0)
-			{
-				printf("\nBulbasaur Fainted..!\nCharmander Won the Battle\n\nRival Gary Defeated you!!");
-			}
-			break;
-		}
-		if(RvlMV<5)
-		{
-			printf("\tCharmander Used Ember\n");
-			if(UD==0)
-			{
-				grassbulb-=Ratk;
-			}
-			if(UD==1)
-			{
-				grassbulb-=(abs(Ratk-Udef));
-				UD--;
-			}
-		}
-		if(fireliz<=0 || grassbulb<=0)      //End Check
-		{
-			if(fireliz<=0)
-			{
-				printf("\nCharmander Fainted..!\nBulbasaur Won the Battle\n\nYou Defeated Rival Gary!!");
-			}
-			if(grassbulb<=0)
-			{
-				printf("\nBulbasaur Fainted..!\nCharmander Won the Battle\n\nRival Gary Defeated you!!");
-			}
-			break;
-		}
-
-		//Healing for Both Parties
-		if(UserMV==3)
-		{
-			printf("\tBulbasaur Used Heal Bell\n");
-			grassbulb+=Uheal;
-			if(grassbulb>100) grassbulb=100;
-		}
-		if(RvlMV>7)
-		{
-			printf("\tCharmander Used Heal Bell\n");
-			fireliz+=Rheal;
-			if(fireliz>100) fireliz=100;
-		}
-
-		//After-Move
-		printf("\nBulbasaur\t: %d/100\nCharmander\t: %d/100\n\n", grassbulb, fireliz);
-		if(RD==1) RD--;
-		if(UD==1) UD--;
-	}
+    if (defenderIsDefending)
+    {
+        damage -= defender->defensePower;
+    }
+    return damage > 0 ? damage : 0;
 }
 
-int main()
+static int heal(const Pokemon *pokemon, int *health)
 {
-	//Structure
-	struct Pokedex PMN[3] = {
-		{1, "Charmander"},
-		{2, "Squirtle"},
-		{3, "Bulbasaur"}
-	};
-	struct Pokedex *ptr;
-	ptr = &PMN[0];
+    int recovered = pokemon->healPower;
+    int missingHealth = MAX_HEALTH - *health;
 
-	//Initializations
-	int UserPoke, RvlPoke;
-	srand(time(0));
+    if (recovered > missingHealth)
+    {
+        recovered = missingHealth;
+    }
+    *health += recovered;
+    return recovered;
+}
 
-	//Game Intro
-	GI();
+static int playBattle(const Pokemon *player, const Pokemon *rival)
+{
+    int playerHealth = MAX_HEALTH;
+    int rivalHealth = MAX_HEALTH;
+    int turn = 1;
 
-	//Pokemon Selection
-	while(1)
-	{
-		printf("What do You Choose..?\n");
-		printf("1.\tCharmander\t: The Fire Type Pokemon\n2.\tSquirtle\t: The Water Type Pokemon\n3.\tBulbasaur\t: The Grass Type Pokemon\n\n");
-		scanf(" %d", &UserPoke);
-		if(UserPoke<1 || UserPoke>3)
-		{
-			printf("Invalid Selection\n\n");
-			continue;
-		}
-		break;
-	}
-	printf("Ash Chose %s\n", ptr[UserPoke-1].PmName);
-	RvlPoke=FoePoke(UserPoke);
-	printf("Gary Chose %s\n\n", ptr[RvlPoke-1].PmName);
+    printf("\n%s, I choose you!\n", player->name);
+    printf("Gary sends out %s!\n", rival->name);
 
-	//Battle
-	printf("Gary: Alright Ash! Since we got out First Pokemon, Let's test the in the Battle..!\nProf Oak: Let me guide you through the Battle.\n\n");
-	printf("You have 3 options to Choose from:\n1.\tAttack:\tDamage Rival Pokemon\n2.\tDefend:\tDefend Your Pokemon\n3.\tHeal:\tRecover Your Pokemon's Health\nLet the Battle Begin..!\n\n");
-	printf("Ash: Go %s..!\n", ptr[UserPoke-1].PmName);
-	RvlPoke=FoePoke(UserPoke);
-	printf("Gary: Go %s..!\n\n", ptr[RvlPoke-1].PmName);
+    while (playerHealth > 0 && rivalHealth > 0)
+    {
+        int choice;
+        Action playerAction;
+        Action rivalAction;
 
-	//Game Loop
-	switch(UserPoke)
-	{
-	case 1:
-	{
-		Fire(ptr);  //User Choose Charmander
-		break;
-	}
-	case 2:
-	{
-		Water(ptr); //User Choose Squirtle
-		break;
-	}
-	case 3:
-	{
-		Grass(ptr); //User Choose Bulbasaur
-		break;
-	}
-	}
-	return 0;
+        printf("\n--- Turn %d ---\n", turn++);
+        displayHealth(player, playerHealth, rival, rivalHealth);
+        printf("1. Attack (%s, %d damage)\n", player->attackName, player->attackPower);
+        printf("2. Defend (reduce incoming damage by %d)\n", player->defensePower);
+        printf("3. Heal (recover up to %d HP)\n", player->healPower);
+        if (!readInteger("Choose your move: ", 1, 3, &choice))
+        {
+            printf("\nInput ended. The battle is over.\n");
+            return 0;
+        }
+
+        playerAction = (Action)choice;
+        if (playerAction == HEAL && playerHealth == MAX_HEALTH)
+        {
+            printf("Your Pokemon is already at full health. Choose another move.\n");
+            continue;
+        }
+
+        rivalAction = chooseRivalAction(rivalHealth);
+        if (playerAction == ATTACK)
+        {
+            int damage = damageAfterDefense(player, rival, rivalAction == DEFEND);
+            rivalHealth -= damage;
+            if (rivalHealth < 0)
+            {
+                rivalHealth = 0;
+            }
+            printf("%s used %s and dealt %d damage!\n",
+                   player->name, player->attackName, damage);
+        }
+        else if (playerAction == DEFEND)
+        {
+            printf("%s braces for the next attack.\n", player->name);
+        }
+
+        if (rivalAction == ATTACK && rivalHealth > 0)
+        {
+            int damage = damageAfterDefense(rival, player, playerAction == DEFEND);
+            playerHealth -= damage;
+            if (playerHealth < 0)
+            {
+                playerHealth = 0;
+            }
+            printf("%s used %s and dealt %d damage!\n",
+                   rival->name, rival->attackName, damage);
+        }
+        else if (rivalAction == DEFEND)
+        {
+            printf("%s is defending.\n", rival->name);
+        }
+
+        if (playerHealth <= 0 || rivalHealth <= 0)
+        {
+            break;
+        }
+
+        if (playerAction == HEAL)
+        {
+            printf("%s recovered %d HP.\n", player->name, heal(player, &playerHealth));
+        }
+        if (rivalAction == HEAL)
+        {
+            printf("%s recovered %d HP.\n", rival->name, heal(rival, &rivalHealth));
+        }
+    }
+
+    displayHealth(player, playerHealth, rival, rivalHealth);
+    if (playerHealth <= 0 && rivalHealth <= 0)
+    {
+        printf("Both Pokemon fainted! The battle is a draw.\n");
+        return 0;
+    }
+    if (rivalHealth <= 0)
+    {
+        printf("%s fainted! You defeated Gary!\n", rival->name);
+        return 1;
+    }
+
+    printf("%s fainted! Gary won the battle.\n", player->name);
+    return 0;
+}
+
+int main(void)
+{
+    int selection;
+
+    srand((unsigned int)time(NULL));
+    printf("----- Pokemon Champions -----\n");
+    printf("Choose your Pokemon and battle Gary!\n");
+
+    do
+    {
+        printf("\n1. Charmander (Fire)\n");
+        printf("2. Squirtle (Water)\n");
+        printf("3. Bulbasaur (Grass)\n");
+        if (!readInteger("Choose your starter: ", 1, 3, &selection))
+        {
+            printf("\nGoodbye!\n");
+            return 0;
+        }
+
+        printf("\nYou chose %s. Gary chose %s.\n",
+               starters[selection - 1].name, rivals[selection - 1].name);
+        playBattle(&starters[selection - 1], &rivals[selection - 1]);
+    } while (readPlayAgain());
+
+    printf("Thanks for playing Pokemon Champions!\n");
+    return 0;
 }
